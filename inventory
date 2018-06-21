@@ -1,0 +1,9 @@
+[mysql]
+master ansible_host=172.31.44.195 ansible_user=ubuntu ansible_ssh_private_key_file=/home/centos/.ssh/GAS-NEW.pem
+slave1 ansible_host=172.31.36.74 ansible_user=ubuntu ansible_ssh_private_key_file=/home/centos/.ssh/GAS-NEW.pem
+slave2 ansible_host=50.233.131.250 ansible_user=administrator ansible_ssh_private_key_file=/home/centos/.ssh/id_rsa
+
+[all:vars]
+master_server=mariadb1.gunaccessorysupply.com
+repli_user=replication_user
+repli_pass=gas#2012

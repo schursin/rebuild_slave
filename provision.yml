@@ -1,0 +1,108 @@
+---
+
+- hosts: 'master'
+  become: true
+  become_user: root
+
+  tasks:
+  
+  - name: "Removing Previous Backup Folder"
+    file:
+      path: /xtrabackup_backupfiles
+      state: absent
+
+  - name: "Creating New Backup Folder"
+    file:
+      path: /xtrabackup_backupfiles
+      state: directory
+
+  - name: "Taking A Backup Of MariaDB"
+    command: /usr/bin/xtrabackup --backup --target-dir=/xtrabackup_backupfiles/
+
+  - name: "Syncing To Slave"
+    command: /usr/bin/rsync -rzv /xtrabackup_backupfiles/ -e ssh ubuntu@172.31.36.74:/xtrabackup_backupfiles/ --delete
+
+- hosts: 'slave1'
+  become: true
+  become_user: root
+
+  tasks:
+
+  - name: "Preparing Backup"
+    command: /usr/bin/xtrabackup --prepare --target-dir=/xtrabackup_backupfiles/
+
+  - name: "Stopping MariaDB"
+    systemd:
+      name: mariadb
+      state: stopped
+      
+  - name: "Removing Empty Folder"
+    file:
+      path: /tmp/empty
+      state: absent     
+
+  - name: "Creating Empty Folder"
+    file:
+      path: /tmp/empty
+      owner: mysql
+      group: mysql
+      state: directory
+
+  - name: "Emptying MariaDB Log Folder"
+    synchronize:
+      src: /tmp/empty/
+      dest: /var/log/mysql
+      delete: yes
+      owner: yes
+      group: yes
+      recursive: yes
+    delegate_to: slave1
+
+  - name: "Emptying MariaDB Data Folder"
+    synchronize:
+      src: /tmp/empty/
+      dest: /var/lib/mysql
+      delete: yes
+      owner: yes
+      group: yes
+      recursive: yes
+    delegate_to: slave1
+
+  - name: "Copying Backup To Data Dir"
+    command: /usr/bin/xtrabackup --copy-back --target-dir=/xtrabackup_backupfiles/  
+
+  - name: "Changing Ownership Of Data Dir"
+    file:
+      path: /var/lib/mysql
+      recurse: yes
+      owner: mysql
+      group: mysql
+    
+  - name: "Starting MariaDB"
+    systemd:
+      name: mariadb
+      state: started
+
+  - name: "Getting Master GTID Position"
+    command: awk '{print $3}' /xtrabackup_backupfiles/xtrabackup_binlog_info
+    register: master_gtid
+
+  - name: "Setting Binlog Facts"
+    set_fact:
+      gtid_slave_pos:  "{{ master_gtid.stdout }}"
+
+  - name: "Setting Up Replication"
+    mysql_replication:
+      mode: changemaster
+      master_host: "{{ master_server }}"
+      master_port: 3306
+      master_user: "{{ repli_user }}"
+      master_password: "{{ repli_pass }}"
+
+  - name: "Setting Slave GTID Position"
+    command: mysql -e "SET GLOBAL gtid_slave_pos = '{{ gtid_slave_pos  }}'; CHANGE MASTER TO master_use_gtid=slave_pos";
+
+  - name: "Starting Replication"
+    mysql_replication:
+      mode: startslave
+                      
