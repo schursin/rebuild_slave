@@ -1,75 +1,100 @@
 ---
 
-- hosts: 'master'
+- hosts: "all"
   become: true
   become_user: root
 
   tasks:
-  
+
+  - name: "Installing Additional Packages If Necessary"
+    apt:
+      name={{ item }}
+      state=present
+    with_items:
+      - liblz4-tool
+      - socat
+      - percona-xtrabackup-24
+
   - name: "Removing Previous Backup Folder"
     file:
-      path: /xtrabackup_backupfiles
+      path: /snapshot/
       state: absent
 
   - name: "Creating New Backup Folder"
     file:
-      path: /xtrabackup_backupfiles
+      path: /snapshot/
       state: directory
+      owner: '{{ socat_user }}'
+      group: '{{ socat_user }}'
 
-  - name: "Taking A Backup Of MariaDB"
-    command: /usr/bin/xtrabackup --backup --target-dir=/xtrabackup_backupfiles/
-
-  - name: "Syncing To Slave"
-    command: /usr/bin/rsync -rzv /xtrabackup_backupfiles/ -e ssh ubuntu@172.31.36.74:/xtrabackup_backupfiles/ --delete
-
-- hosts: 'slave1'
+- hosts: "master"
   become: true
   become_user: root
 
   tasks:
 
-  - name: "Preparing Backup"
-    command: /usr/bin/xtrabackup --prepare --target-dir=/xtrabackup_backupfiles/
+  - name: "Backup, Compress & Stream To Target"
+    shell: /usr/bin/xtrabackup --backup --target-dir=/snapshot/ --stream=xbstream --parallel=2 | lz4 | socat - TCP-LISTEN:4444,reuseaddr
+    args:
+      chdir: /snapshot/
+    async: 86400
+    poll: 0
+    register: socat_sleeper
+
+  # - name: "Sending File To Slave"
+    # shell: socat -u FILE:"snapshot.xb.lz4" TCP-LISTEN:4444,reuseaddr
+    # args:
+      # chdir: /snapshot/
+    # async: 86400
+    # poll: 0
+
+
+- hosts: "slave"
+  become: true
+  become_user: root
+
+  tasks:
 
   - name: "Stopping MariaDB"
     systemd:
       name: mariadb
       state: stopped
-      
-  - name: "Removing Empty Folder"
+
+  - name: "Emptying /var/lib/mysql/"
+    shell: rm -rf /var/lib/mysql/*
+    args:
+      warn: false
+
+  - name: "Emptying /var/log/mysql/"
+    shell: rm -rf /var/log/mysql/*
+    args:
+      warn: false
+
+  - name: "Receiving File From Master"
+    shell: socat -u TCP:{{ socat_source }}:4444 STDOUT > snapshot.xb.lz4
+    args:
+      chdir: /var/lib/mysql/
+
+  - name: "Unarchiving Backup File"
+    shell: lz4cat snapshot.xb.lz4 | xbstream -x
+    args:
+      chdir: /var/lib/mysql/
+
+  - name: "Removing Archive File"
     file:
-      path: /tmp/empty
-      state: absent     
+      path: /var/lib/mysql/snapshot.xb.lz4
+      state: absent
 
-  - name: "Creating Empty Folder"
-    file:
-      path: /tmp/empty
-      owner: mysql
-      group: mysql
-      state: directory
+  - name: "Getting Master GTID Position"
+    shell: awk '{print $3}' /var/lib/mysql/xtrabackup_binlog_info
+    register: master_gtid
 
-  - name: "Emptying MariaDB Log Folder"
-    synchronize:
-      src: /tmp/empty/
-      dest: /var/log/mysql
-      delete: yes
-      owner: yes
-      group: yes
-      recursive: yes
-    delegate_to: slave1
+  - name: "Setting Binlog Facts"
+    set_fact:
+      gtid_slave_pos: "{{ master_gtid.stdout }}"
 
-  - name: "Emptying MariaDB Data Folder"
-    synchronize:
-      src: /tmp/empty/
-      dest: /var/lib/mysql
-      delete: yes
-      owner: yes
-      group: yes
-      recursive: yes
-    delegate_to: slave1
-
-  - name: "Copying Backup To Data Dir"
-    command: /usr/bin/xtrabackup --copy-back --target-dir=/xtrabackup_backupfiles/  
+  - name: "Preparing Backup"
+    shell: /usr/bin/xtrabackup --prepare --target-dir=/var/lib/mysql/
 
   - name: "Changing Ownership Of Data Dir"
     file:
@@ -77,19 +102,11 @@
       recurse: yes
       owner: mysql
       group: mysql
-    
+
   - name: "Starting MariaDB"
     systemd:
       name: mariadb
       state: started
-
-  - name: "Getting Master GTID Position"
-    command: awk '{print $3}' /xtrabackup_backupfiles/xtrabackup_binlog_info
-    register: master_gtid
-
-  - name: "Setting Binlog Facts"
-    set_fact:
-      gtid_slave_pos:  "{{ master_gtid.stdout }}"
 
   - name: "Setting Up Replication"
     mysql_replication:
@@ -100,9 +117,8 @@
       master_password: "{{ repli_pass }}"
 
   - name: "Setting Slave GTID Position"
-    command: mysql -e "SET GLOBAL gtid_slave_pos = '{{ gtid_slave_pos  }}'; CHANGE MASTER TO master_use_gtid=slave_pos";
+    shell: mysql -e "SET GLOBAL gtid_slave_pos = '{{ gtid_slave_pos  }}'; CHANGE MASTER TO master_use_gtid=slave_pos";
 
   - name: "Starting Replication"
     mysql_replication:
       mode: startslave
-                      
