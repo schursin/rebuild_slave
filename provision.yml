@@ -15,18 +15,6 @@
       - socat
       - percona-xtrabackup-24
 
-  - name: "Removing Previous Backup Folder"
-    file:
-      path: /snapshot/
-      state: absent
-
-  - name: "Creating New Backup Folder"
-    file:
-      path: /snapshot/
-      state: directory
-      owner: '{{ socat_user }}'
-      group: '{{ socat_user }}'
-
 - hosts: "master"
   become: true
   become_user: root
@@ -34,7 +22,7 @@
   tasks:
 
   - name: "Backup, Compress & Stream To Target"
-    shell: /usr/bin/xtrabackup --backup --target-dir=/snapshot/ --stream=xbstream --parallel=2 | lz4 | socat - TCP-LISTEN:4444,reuseaddr
+    shell: /usr/bin/xtrabackup --backup --target-dir=/tmp --stream=xbstream --parallel=2 | lz4 | socat - TCP-LISTEN:4444,reuseaddr
     args:
       chdir: /snapshot/
     async: 86400
