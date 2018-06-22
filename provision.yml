@@ -23,19 +23,9 @@
 
   - name: "Backup, Compress & Stream To Target"
     shell: /usr/bin/xtrabackup --backup --target-dir=/tmp --stream=xbstream --parallel=2 | lz4 | socat - TCP-LISTEN:4444,reuseaddr
-    args:
-      chdir: /snapshot/
     async: 86400
     poll: 0
     register: socat_sleeper
-
-  # - name: "Sending File To Slave"
-    # shell: socat -u FILE:"snapshot.xb.lz4" TCP-LISTEN:4444,reuseaddr
-    # args:
-      # chdir: /snapshot/
-    # async: 86400
-    # poll: 0
-
 
 - hosts: "slave"
   become: true
