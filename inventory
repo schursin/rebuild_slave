@@ -1,10 +1,10 @@
 [mariadb]
-master ansible_host=54.191.22.4 ansible_user=ubuntu ansible_ssh_private_key_file="/Users/toddstoffel/Non-iCloud/Work/Gun Accessory Supply/keys/GAS-NEW.pem"
-slave ansible_host=52.27.5.1 ansible_user=ubuntu ansible_ssh_private_key_file="/Users/toddstoffel/Non-iCloud/Work/Gun Accessory Supply/keys/GAS-NEW.pem"
+master ansible_host=<MASTER_IP_ADDESS> ansible_user=<SYSTEM_USER> ansible_ssh_private_key_file="/path/to/your/key.pub"
+slave ansible_host=<SLAVE_IP_ADDRESS> ansible_user=<SYSTEM_USER> ansible_ssh_private_key_file="/path/to/your/key.pub"
 
 [all:vars]
-master_server=mariadb1.gunaccessorysupply.com
-repli_user=replication_user
-repli_pass=gas#2012
-socat_user=ubuntu
-socat_source=172.31.44.195
+master_server=<SERVER_ADDRESS>
+repli_user=<USER>
+repli_pass=<PASSWORD>
+socat_user=<SYSTEM_USER>
+socat_source=<SOURCE_IP_ADDRESS>
