@@ -14,6 +14,7 @@
       - liblz4-tool
       - socat
       - percona-xtrabackup-24
+      - mariadb-backup
 
 - hosts: "master"
   become: true
@@ -22,7 +23,7 @@
   tasks:
 
   - name: "Backup, Compress & Stream To Target"
-    shell: /usr/bin/xtrabackup --backup --target-dir=/tmp --stream=xbstream --parallel=2 | lz4 | socat - TCP-LISTEN:4444,reuseaddr
+    shell: /usr/bin/mariabackup --backup --target-dir=/tmp --stream=xbstream --parallel=2 | lz4 | socat - TCP-LISTEN:4444,reuseaddr
     async: 86400
     poll: 0
     register: socat_sleeper
@@ -54,7 +55,7 @@
       chdir: /var/lib/mysql/
 
   - name: "Unarchiving Backup File"
-    shell: lz4cat snapshot.xb.lz4 | xbstream -x
+    shell: lz4cat snapshot.xb.lz4 | mbstream -x
     args:
       chdir: /var/lib/mysql/
 
