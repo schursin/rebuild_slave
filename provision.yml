@@ -23,7 +23,7 @@
   tasks:
 
   - name: "Backup, Compress & Stream To Target"
-    shell: /usr/bin/mariabackup --backup --target-dir=/tmp --stream=xbstream --parallel=2 | lz4 | socat - TCP-LISTEN:4444,reuseaddr
+    shell: /usr/bin/mariabackup --binlog-info=on --ftwrl-wait-query-type=all --safe-slave-backup --backup --target-dir=/tmp --stream=xbstream --parallel=2 | lz4 | socat - TCP-LISTEN:4444,reuseaddr
     async: 86400
     poll: 0
     register: socat_sleeper
@@ -64,16 +64,8 @@
       path: /var/lib/mysql/snapshot.xb.lz4
       state: absent
 
-  - name: "Getting Master GTID Position"
-    shell: awk '{print $3}' /var/lib/mysql/xtrabackup_binlog_info
-    register: master_gtid
-
-  - name: "Setting Binlog Facts"
-    set_fact:
-      gtid_slave_pos: "{{ master_gtid.stdout }}"
-
   - name: "Preparing Backup"
-    shell: /usr/bin/xtrabackup --prepare --target-dir=/var/lib/mysql/
+    shell: /usr/bin/mariabackup --prepare --target-dir=/var/lib/mysql/
 
   - name: "Changing Ownership Of Data Dir"
     file:
@@ -81,6 +73,11 @@
       recurse: yes
       owner: mysql
       group: mysql
+
+  - name: "Removing Empty ib_logfile0"
+    file:
+      path: /var/lib/mysql/ib_logfile0
+      state: absent
 
   - name: "Starting MariaDB"
     systemd:
@@ -94,6 +91,14 @@
       master_port: 3306
       master_user: "{{ repli_user }}"
       master_password: "{{ repli_pass }}"
+
+  - name: "Getting Master GTID Position"
+    shell: awk '{print $3}' /var/lib/mysql/xtrabackup_binlog_info
+    register: master_gtid
+
+  - name: "Setting Binlog Facts"
+    set_fact:
+      gtid_slave_pos: "{{ master_gtid.stdout }}"
 
   - name: "Setting Slave GTID Position"
     shell: mysql -e "SET GLOBAL gtid_slave_pos = '{{ gtid_slave_pos  }}'; CHANGE MASTER TO master_use_gtid=slave_pos";
