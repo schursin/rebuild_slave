@@ -23,7 +23,7 @@
   tasks:
 
   - name: "Backup, Compress & Stream To Target"
-    shell: /usr/bin/mariabackup --safe-slave-backup --backup --target-dir=/tmp --stream=xbstream --parallel=2 | lz4 | socat - TCP-LISTEN:4444,reuseaddr
+    shell: /usr/bin/mariabackup --ftwrl-wait-query-type=ALL --safe-slave-backup --backup --target-dir=/tmp --stream=xbstream --parallel=4 | lz4 | socat - TCP-LISTEN:4444,reuseaddr
     async: 86400
     poll: 0
     register: socat_sleeper
@@ -34,7 +34,7 @@
 
   tasks:
 
-  - name: "Stopping MariaDB"
+  - name: "Stopping MariaDB on Slave"
     systemd:
       name: mariadb
       state: stopped
@@ -65,7 +65,7 @@
       state: absent
 
   - name: "Preparing Backup"
-    shell: /usr/bin/mariabackup --prepare --target-dir=/var/lib/mysql/
+    shell: /usr/bin/mariabackup --close-files --prepare --target-dir=/var/lib/mysql/
 
   - name: "Changing Ownership Of Data Dir"
     file:
@@ -79,7 +79,7 @@
       path: /var/lib/mysql/ib_logfile0
       state: absent
 
-  - name: "Starting MariaDB"
+  - name: "Starting MariaDB On Slave"
     systemd:
       name: mariadb
       state: started
