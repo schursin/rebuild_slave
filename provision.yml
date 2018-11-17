@@ -7,13 +7,15 @@
   tasks:
 
   - name: "Installing Additional Packages If Necessary"
-    apt:
-      name={{ item }}
-      state=present
-    with_items:
+    package:
+      name: '{{ packages }}'
+      state: present
+    vars:
+      packages:
       - liblz4-tool
+#      - lz4
       - socat
-      - percona-xtrabackup-24
+#      - MariaDB-backup
       - mariadb-backup
 
 - hosts: "master"
@@ -65,7 +67,7 @@
       state: absent
 
   - name: "Preparing Backup"
-    shell: /usr/bin/mariabackup --close-files --prepare --target-dir=/var/lib/mysql/
+    shell: /usr/bin/mariabackup --close-files --use-memory=2G --prepare --target-dir=/var/lib/mysql/
 
   - name: "Changing Ownership Of Data Dir"
     file:
