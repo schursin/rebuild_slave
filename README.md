@@ -1,4 +1,4 @@
-# Create Slave
+# Automatic Slave Creation Utility
 
 #### Prerequisites
 
