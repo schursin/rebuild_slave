@@ -12,3 +12,7 @@
 * cd to cloned folder
 * edit inventory file with your own information
 * `ansible-playbook -i inventory create_slave.yml`
+
+#### Need Additional Help?
+
+* Consulting: https://mariadb.com/services/consulting
