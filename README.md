@@ -1,4 +1,4 @@
-# Automatic Slave Creation Utility
+# Automatic Slave Creation Utility For MariaDB 10.3+
 
 #### Prerequisites
 
