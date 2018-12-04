@@ -3,6 +3,8 @@
 - hosts: "all"
   become: true
   become_user: root
+  vars_files:
+    - 'vars/{{ ansible_os_family }}.yml'
 
   tasks:
 
@@ -12,11 +14,9 @@
       state: present
     vars:
       packages:
-      - liblz4-tool
-#      - lz4
-      - socat
-#      - MariaDB-backup
-      - mariadb-backup
+      - '{{ lz4 }}'
+      - '{{ socat }}'
+      - '{{ mariabackup }}'
 
 - hosts: "master"
   become: true

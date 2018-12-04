@@ -1,0 +1,43 @@
+---
+
+ethernet_interface: enp0s8
+version: 7
+mariadb: mariadb*
+tzdata: tzdata
+boost: boost
+expect: expect
+perl: perl
+perl_DBI: perl-DBI
+openssl: openssl
+readline_dev:
+zlib: zlib
+lz4: lz4
+lz4_devel: lz4-devel
+file: file
+libaio: libaio
+rsync: rsync
+snappy: snappy
+net_tools: net-tools
+numactl_libs: numactl-libs
+nano: nano
+tcp_wrappers_devel: tcp_wrappers-devel
+mlocate: mlocate
+unzip: unzip
+nmap: nmap
+development_tools: "@Development tools"
+cmake: cmake
+tcl: tcl
+mysql_python: MySQL-python
+mariabackup: MariaDB-backup
+mariadb_server: MariaDB-server
+mariadb_client: MariaDB-client
+rocksdb: MariaDB-rocksdb-engine
+connect: MariaDB-connect-engine
+tokudb: MariaDB-tokudb-engine
+spider: Mariadb-spider-engine
+pigz: pigz
+socat: socat
+git: git
+ansible: ansible
+maxscale: maxscale
+utils: epel-release
