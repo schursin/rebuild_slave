@@ -3,3 +3,4 @@ inventory_gas
 *.retry
 mariadb2
 isi-23
+test.yml
