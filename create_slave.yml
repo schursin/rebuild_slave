@@ -25,7 +25,7 @@
   tasks:
 
   - name: "Backup, Compress & Stream To Target"
-    shell: /usr/bin/mariabackup --backup --target-dir=/tmp --stream=xbstream --parallel=2 | lz4 | socat - TCP-LISTEN:4444,reuseaddr
+    shell: /usr/bin/mariabackup --backup --target-dir=/tmp --stream=xbstream --parallel={{ ansible_processor_vcpus }} | lz4 | socat - TCP-LISTEN:4444,reuseaddr
     async: 86400
     poll: 0
     register: socat_sleeper
