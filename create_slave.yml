@@ -25,7 +25,7 @@
   tasks:
 
   - name: "Backup, Compress & Stream To Target"
-    shell: /usr/bin/mariabackup --backup --target-dir=/tmp --stream=xbstream --parallel={{ ansible_processor_vcpus }} | lz4 | socat - TCP-LISTEN:4444,reuseaddr
+    shell: /usr/bin/mariabackup --backup --target-dir=/tmp --stream=xbstream --parallel={{ ansible_processor_vcpus }} | pigz | socat - TCP-LISTEN:4444,reuseaddr
     async: 86400
     poll: 0
     register: socat_sleeper
@@ -57,13 +57,13 @@
       chdir: /var/lib/mysql/
 
   - name: "Unarchiving Backup File"
-    shell: lz4cat snapshot.xb.lz4 | mbstream -x
+    shell: pigz -dc snapshot.xb.gz | mbstream -x
     args:
       chdir: /var/lib/mysql/
 
   - name: "Removing Archive File"
     file:
-      path: /var/lib/mysql/snapshot.xb.lz4
+      path: /var/lib/mysql/snapshot.xb.gz
       state: absent
 
   - name: "Preparing Backup"
