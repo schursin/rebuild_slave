@@ -67,7 +67,7 @@
       state: absent
 
   - name: "Preparing Backup"
-    shell: /usr/bin/mariabackup --use-memory=2G --prepare --target-dir=/var/lib/mysql/
+    shell: /usr/bin/mariabackup --use-memory=1G --prepare --target-dir=/var/lib/mysql/
 
   - name: "Changing Ownership Of Data Dir"
     file:
