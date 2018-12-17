@@ -14,7 +14,7 @@
       state: present
     vars:
       packages:
-      - '{{ lz4 }}'
+      - '{{ pigz }}'
       - '{{ socat }}'
       - '{{ mariabackup }}'
 
