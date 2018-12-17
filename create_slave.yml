@@ -52,19 +52,9 @@
       warn: false
 
   - name: "Receiving File From Master"
-    shell: socat -u TCP:{{ socat_source }}:4444 STDOUT > snapshot.xb.gz
+    shell: socat -u TCP:{{ socat_source }}:4444 STDOUT | pigz -dc | mbstream -x
     args:
       chdir: /var/lib/mysql/
-
-  - name: "Unarchiving Backup File"
-    shell: pigz -dc snapshot.xb.gz | mbstream -x
-    args:
-      chdir: /var/lib/mysql/
-
-  - name: "Removing Archive File"
-    file:
-      path: /var/lib/mysql/snapshot.xb.gz
-      state: absent
 
   - name: "Preparing Backup"
     shell: /usr/bin/mariabackup --use-memory=1G --prepare --target-dir=/var/lib/mysql/
