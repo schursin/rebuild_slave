@@ -79,10 +79,10 @@
   - name: "Setting Up Replication"
     mysql_replication:
       mode: changemaster
-      master_host: "{{ master_server }}"
+      master_host: '{{ master_server }}'
       master_port: 3306
-      master_user: "{{ repli_user }}"
-      master_password: "{{ repli_pass }}"
+      master_user: '{{ repli_user }}'
+      master_password: '{{ repli_pass }}'
 
   - name: "Getting Master GTID Position"
     shell: awk '{print $3}' /var/lib/mysql/xtrabackup_binlog_info
@@ -90,7 +90,7 @@
 
   - name: "Setting Binlog Facts"
     set_fact:
-      gtid_slave_pos: "{{ master_gtid.stdout }}"
+      gtid_slave_pos: '{{ master_gtid.stdout }}'
 
   - name: "Setting Slave GTID Position"
     shell: mysql -e "SET GLOBAL gtid_slave_pos = '{{ gtid_slave_pos  }}'; CHANGE MASTER TO master_use_gtid=slave_pos";
