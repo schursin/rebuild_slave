@@ -1,7 +1,7 @@
 # Automatic Replica Creation Utility For MariaDB 10.3+
 
 ## Description
-This playbook will automatically rebuild and configure a replication slave.  It can be run from any machine that can access your database servers via SSH.
+This playbook will automatically rebuild and configure a replication slave.  It can be run from any host that can access your database servers via SSH.
 
 On the **master**, it will:
 
