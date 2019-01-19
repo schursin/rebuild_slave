@@ -3,14 +3,19 @@
 ## Description
 This playbook will create or rebuild a replication slave using the [MariaBackup](https://mariadb.com/kb/en/library/mariabackup-overview/) tool.  It can be run from any machine that can access your database servers via SSH.
 
-It will launch the backup utility on your master and create a streaming snapshot of your data directory using [xbstream/mbstream](https://www.percona.com/doc/percona-xtrabackup/2.3/xbstream/xbstream.html).  The stream will then pass through the [pigz](https://zlib.net/pigz/) utility for additional compression before traversing your network to your slave via the [socat](http://www.dest-unreach.org/socat/) utility.  
+On the **master**, it will:
 
-On the target side, it will do the following:
-1. Receive the stream
-1. Decompress
-1. Prepare the backup
-1. Find the GTID position
-1. Register with the master
+1. Launch the mariabackup utility.
+1. Create a streaming snapshot of your data directory using [xbstream/mbstream](https://www.percona.com/doc/percona-xtrabackup/2.3/xbstream/xbstream.html).
+1. Compress the stream with [pigz](https://zlib.net/pigz/).
+1. Stream to slave via [socat](http://www.dest-unreach.org/socat/).
+
+On the **slave**, it will:
+1. Receive the stream.
+1. Decompress.
+1. Prepare the backup.
+1. Find the GTID position.
+1. Register with the master.
 1. Start slave replication.
 
 #### Prerequisites
