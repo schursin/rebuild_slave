@@ -11,7 +11,7 @@ This playbook will create a replication slave by using the [MariaBackup](https:/
 #### Setup
 
 * `git clone https://github.com/toddstoffel/rebuild_slave.git`
-* cd to cloned folder
+* **cd** to cloned folder
 * Edit the **inventory** file with your own information
 * `ansible-playbook -i inventory create_slave.yml`
 
