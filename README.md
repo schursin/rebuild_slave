@@ -1,11 +1,11 @@
 # Automatic Replica Creation Utility For MariaDB 10.3+
 
 ## Description
-This playbook will create or rebuild a replication slave using the [MariaBackup](https://mariadb.com/kb/en/library/mariabackup-overview/) tool.  It can be run from any machine that can access your database servers via SSH.
+This playbook will automatically rebuild and configure a replication slave.  It can be run from any machine that can access your database servers via SSH.
 
 On the **master**, it will:
 
-1. Launch the mariabackup utility.
+1. Launch [MariaBackup](https://mariadb.com/kb/en/library/mariabackup-overview/).
 1. Create a streaming snapshot of your data directory using [xbstream/mbstream](https://www.percona.com/doc/percona-xtrabackup/2.3/xbstream/xbstream.html).
 1. Compress the stream with [pigz](https://zlib.net/pigz/).
 1. Stream to slave via [socat](http://www.dest-unreach.org/socat/).
