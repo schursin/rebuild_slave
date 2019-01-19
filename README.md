@@ -5,7 +5,12 @@ This playbook will create or rebuild a replication slave using the [MariaBackup]
 
 It will launch the backup utility on your master and create a streaming snapshot of your data directory using [xbstream/mbstream](https://www.percona.com/doc/percona-xtrabackup/2.3/xbstream/xbstream.html).  The stream will then pass through the [pigz](https://zlib.net/pigz/) utility for additional compression before traversing your network to your slave via the [socat](http://www.dest-unreach.org/socat/) utility.  
 
-On the target side, it will receive the file and decompress before preparing the backup, finding the GTID position, registering with the master and starting slave replication.
+On the target side, it will do the following:
+1. Receive the file and decompress
+1. Prepare the backup
+1. Find the GTID position
+1. Register with the master
+1. Start slave replication.
 
 #### Prerequisites
 
