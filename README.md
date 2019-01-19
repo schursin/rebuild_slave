@@ -8,7 +8,7 @@ On the **master**, it will:
 1. Launch [MariaBackup](https://mariadb.com/kb/en/library/mariabackup-overview/).
 1. Create a streaming snapshot of your data directory using [xbstream/mbstream](https://www.percona.com/doc/percona-xtrabackup/2.3/xbstream/xbstream.html).
 1. Compress the stream with [pigz](https://zlib.net/pigz/).
-1. Stream to slave via [socat](http://www.dest-unreach.org/socat/).
+1. Stream to the slave via [socat](http://www.dest-unreach.org/socat/).
 
 On the **slave**, it will:
 1. Receive the stream.
