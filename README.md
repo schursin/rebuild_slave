@@ -6,7 +6,7 @@ This playbook will create a replication slave by using the [MariaBackup](https:/
 #### Prerequisites
 
 * [Ansible](http://docs.ansible.com/ansible/latest/intro_installation.html)
-* Port **4444** must be open between your machines.
+* Port **4444** must be open between your master and slave.
 
 #### Setup
 
