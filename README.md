@@ -1,7 +1,7 @@
 # Automatic Replica Creation Utility For MariaDB 10.3+
 
 ## Description
-This playbook will create a replication slave by using the [MariaBackup](https://mariadb.com/kb/en/library/mariabackup-overview/) tool.  It will launch the backup utility on your master and create a streaming snapshot of your data directory using xbstream/mbstream.  It will then pass through the lz4 utility for additional compression before streaming over your network to your slave via the socat utility.  On the target side, it will receive the file and decompress before preparing the backup, finding the GTID position, registering with the master and starting slave replication.
+This playbook will create a replication slave by using the [MariaBackup](https://mariadb.com/kb/en/library/mariabackup-overview/) tool.  It will launch the backup utility on your master and create a streaming snapshot of your data directory using xbstream/mbstream.  It will then pass through the pigz utility for additional compression before streaming over your network to your slave via the socat utility.  On the target side, it will receive the file and decompress before preparing the backup, finding the GTID position, registering with the master and starting slave replication.
 
 #### Prerequisites
 
